@@ -5,6 +5,13 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+# Sanitizer
+option(HEX_SANITIZE "Build with sanitizers" OFF)
+if(HEX_SANITIZE)
+    add_compile_options(-fsanitize=address,undefined -fno-omit-frame-pointer)
+    add_link_options(-fsanitize=address,undefined)
+endif()
+
 add_library(hexcore src/board.cpp)
 target_include_directories(hexcore PUBLIC src)
 target_compile_options(hexcore PRIVATE -Wall -Wextra -Wpedantic)
