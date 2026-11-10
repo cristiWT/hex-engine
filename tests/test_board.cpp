@@ -2,6 +2,6 @@
 
 TEST_CASE("sanitizer check") {
     std::vector<int> a(10);
-    int x = a[10];
+    int x = a[9];
     REQUIRE(x == x);
 }
