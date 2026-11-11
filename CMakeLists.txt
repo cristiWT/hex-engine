@@ -12,13 +12,13 @@ if(HEX_SANITIZE)
     add_link_options(-fsanitize=address,undefined)
 endif()
 
-add_library(hexcore src/board.cpp)
+add_library(hexcore src/board.cpp src/union_find.cpp)
 target_include_directories(hexcore PUBLIC src)
 target_compile_options(hexcore PRIVATE -Wall -Wextra -Wpedantic)
 
 add_executable(hex src/main.cpp)
 target_link_libraries(hex PRIVATE hexcore)
-
+target_compile_options(hex PRIVATE -Wall -Wextra -Wpedantic)
 
 # Tests
 include(FetchContent)
@@ -28,7 +28,8 @@ FetchContent_Declare(Catch2
 FetchContent_MakeAvailable(Catch2)
 
 enable_testing()
-add_executable(tests tests/test_board.cpp)
+add_executable(tests tests/test_board.cpp tests/test_union_find.cpp)
 target_link_libraries(tests PRIVATE hexcore Catch2::Catch2WithMain)
 include(Catch)
 catch_discover_tests(tests)
+target_compile_options(tests PRIVATE -Wall -Wextra -Wpedantic)
