@@ -22,8 +22,10 @@ public:
     Color winner() const;
     Color opponent() const;
     bool is_legal(int idx) const;
+    bool is_swap_legal() const;
 
     void play(int idx);
+    void perform_swap();
 
     std::vector<int> legal_moves() const;
     const std::vector<int>& neighbors(int idx) const;
@@ -40,4 +42,5 @@ private:
     Color winner_;
     UnionFind groups_;
     std::vector<std::vector<int>> neighbors_;
+    bool its_reds_first_move_, its_blues_first_move_;
 };

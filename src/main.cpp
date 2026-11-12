@@ -41,7 +41,7 @@ int main(int argc, char* argv[]) {
     Board board(n);
 
     std::cout << "Red connect top-bottom, Blue connect left-right.\n";
-    std::cout << "Enter moves like: a2. (q to quit)\n\n";
+    std::cout << "Enter moves like: a2. (s to swap | q to quit)\n\n";
 
     while (board.winner() == Color::empty) {
         print(board);
@@ -50,6 +50,14 @@ int main(int argc, char* argv[]) {
         std::string move;
         if (!(std::cin >> move) || move == "q") {
             return 0;
+        }
+        if (move == "s") {
+            if (!board.is_swap_legal()) {
+                std::cout << "Illegal move, try again!\n";
+            } else {
+                board.perform_swap();
+            }
+            continue;
         }
         int c = move[0] - 'a', r = -1;
         try {

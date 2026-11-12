@@ -34,6 +34,8 @@ Board::Board(int n)
             }
         }
     }
+    its_reds_first_move_ = true;
+    its_blues_first_move_ = false;
 }
 
 int Board::size() const { return n_; }
@@ -52,6 +54,8 @@ Color Board::winner() const { return winner_; }
 bool Board::is_legal(int idx) const {
     return 0 <= idx && idx < n_ * n_ && cell_[idx] == Color::empty;
 }
+
+bool Board::is_swap_legal() const { return its_blues_first_move_; }
 
 int Board::top_node() const { return n_ * n_; }
 int Board::bottom_node() const { return n_ * n_ + 1; }
@@ -78,6 +82,13 @@ void Board::play(int idx) {
     Color me = to_move_;
     cell_[idx] = me;
 
+    if (its_reds_first_move_) {
+        its_reds_first_move_ = false;
+        its_blues_first_move_ = true;
+    } else {
+        its_blues_first_move_ = false;
+    }
+
     for (int neighbor: neighbors_[idx]) {
         if (cell_[neighbor] == me) {
             groups_.unite(idx, neighbor);
@@ -98,5 +109,24 @@ void Board::play(int idx) {
         if (groups_.same(left_node(), right_node())) winner_ = Color::blue;
     }
     to_move_ = Board::opponent();
+}
+
+void Board::perform_swap() {
+    assert(its_blues_first_move_ && to_move_ == Color::blue);
+    its_blues_first_move_ = false;
+
+    int idx = -1;
+    for (idx = 0; idx < n_ * n_; idx++) {
+        if (cell_[idx] == Color::red) {
+            break;
+        }
+    }
+    cell_[idx] = Color::empty;
+    groups_ = UnionFind(n_ * n_ + 4);
+    const int new_idx = index(col(idx), row(idx));
+    cell_[new_idx] = Color::blue;
+    if (col(new_idx) == 0) groups_.unite(left_node(), new_idx);
+    if (col(new_idx) == n_ - 1) groups_.unite(right_node(), new_idx);
+    to_move_ = opponent();
 }
 

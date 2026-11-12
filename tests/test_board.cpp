@@ -99,3 +99,70 @@ TEST_CASE("random full games: exactly one winner, matching BFS after every move"
         }
     }
 }
+
+TEST_CASE("swap is only legal on blue's first move") {
+    Board b(3);
+    REQUIRE_FALSE(b.is_swap_legal());       // nothing played yet
+    b.play(b.index(0, 1));                  // red
+    REQUIRE(b.is_swap_legal());
+    b.play(b.index(2, 2));                  // blue declines the swap
+    REQUIRE_FALSE(b.is_swap_legal());
+}
+
+TEST_CASE("swap mirrors red's stone into a blue one, red to move") {
+    Board b(3);
+    b.play(b.index(0, 1));                  // red
+    b.perform_swap();
+    REQUIRE(b.at(b.index(0, 1)) == Color::empty);
+    REQUIRE(b.at(b.index(1, 0)) == Color::blue);
+    REQUIRE(b.to_move() == Color::red);
+    REQUIRE_FALSE(b.is_swap_legal());
+    REQUIRE(b.legal_moves().size() == 8);
+}
+
+TEST_CASE("swap on the diagonal keeps the same cell") {
+    Board b(3);
+    b.play(b.index(1, 1));                  // red
+    b.perform_swap();
+    REQUIRE(b.at(b.index(1, 1)) == Color::blue);
+    REQUIRE(b.to_move() == Color::red);
+}
+
+TEST_CASE("blue wins through the swapped stone on the left edge") {
+    Board b(3);
+    b.play(b.index(0, 1));                  // red
+    b.perform_swap();                       // blue now at (1, 0)
+    b.play(b.index(0, 0));                  // red
+    b.play(b.index(1, 1));                  // blue
+    b.play(b.index(0, 2));                  // red
+    REQUIRE(b.winner() == Color::empty);
+    b.play(b.index(1, 2));                  // blue completes row 1
+    REQUIRE(b.winner() == Color::blue);
+}
+
+TEST_CASE("random full games with a swap: winner matches BFS after every move") {
+    std::mt19937 rng(67890);
+    for (int n = 2; n <= 11; ++n) {
+        for (int game = 0; game < 50; ++game) {
+            Board b(n);
+            std::vector<int> first = b.legal_moves();
+            b.play(first[rng() % first.size()]);
+            b.perform_swap();
+            std::vector<int> moves = b.legal_moves();
+            std::shuffle(moves.begin(), moves.end(), rng);
+            for (int m : moves) {
+                b.play(m);
+                const bool red = bfs_connected(b, Color::red);
+                const bool blue = bfs_connected(b, Color::blue);
+                REQUIRE_FALSE((red && blue));
+                if (b.winner() == Color::empty) {
+                    REQUIRE_FALSE(red);
+                    REQUIRE_FALSE(blue);
+                } else {
+                    REQUIRE(bfs_connected(b, b.winner()));
+                }
+            }
+            REQUIRE(b.winner() != Color::empty);
+        }
+    }
+}
