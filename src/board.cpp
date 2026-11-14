@@ -17,8 +17,9 @@ Color Board::opponent() const {
     }
 }
 
-Board::Board(int n)
+Board::Board(int n, bool is_swap_on)
     : n_(n),
+    is_swap_on_(is_swap_on),
     cell_(std::vector<Color>(n * n, Color::empty)),
     to_move_(Color::red),
     winner_(Color::empty),
@@ -52,6 +53,7 @@ Color Board::to_move() const { return to_move_; }
 Color Board::winner() const { return winner_; }
 
 bool Board::is_legal(int idx) const {
+    if (idx == n_ * n_) return is_swap_legal();
     return 0 <= idx && idx < n_ * n_ && cell_[idx] == Color::empty;
 }
 
@@ -73,18 +75,25 @@ std::vector<int> Board::legal_moves() const {
             answer.push_back(i);
         }
     }
+    if (its_blues_first_move_) {
+        answer.push_back(n_ * n_);
+    }
     return answer;
 }
 
 void Board::play(int idx) {
     assert(is_legal(idx));
+    if (idx == n_ * n_) {
+        perform_swap();
+        return;
+    }
 
     Color me = to_move_;
     cell_[idx] = me;
 
     if (its_reds_first_move_) {
         its_reds_first_move_ = false;
-        its_blues_first_move_ = true;
+        its_blues_first_move_ = is_swap_on_;
     } else {
         its_blues_first_move_ = false;
     }
@@ -112,7 +121,7 @@ void Board::play(int idx) {
 }
 
 void Board::perform_swap() {
-    assert(its_blues_first_move_ && to_move_ == Color::blue);
+    assert(its_blues_first_move_ && to_move_ == Color::blue && is_swap_on_);
     its_blues_first_move_ = false;
 
     int idx = -1;

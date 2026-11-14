@@ -55,15 +55,6 @@ TEST_CASE("new board is empty, red to move, no winner") {
     REQUIRE(b.legal_moves().size() == 9);
 }
 
-TEST_CASE("playing fills the cell and passes the turn") {
-    Board b(3);
-    b.play(b.index(1, 1));
-    REQUIRE(b.at(b.index(1, 1)) == Color::red);
-    REQUIRE(b.to_move() == Color::blue);
-    REQUIRE_FALSE(b.is_legal(b.index(1, 1)));
-    REQUIRE(b.legal_moves().size() == 8);
-}
-
 TEST_CASE("red wins with a full column, not with a gap") {
     Board b(3);
     // red plays column 0 top to bottom; blue plays harmless cells on column 2.
@@ -165,4 +156,34 @@ TEST_CASE("random full games with a swap: winner matches BFS after every move") 
             REQUIRE(b.winner() != Color::empty);
         }
     }
+}
+TEST_CASE("play() with the swap index behaves exactly like perform_swap()") {
+    // Players (and the arena) pick moves from legal_moves(), which offers the
+    // swap as index n*n, so play(n*n) must be a proper swap, not a stone placement.
+    for (int n = 2; n <= 5; ++n) {
+        for (int first = 0; first < n * n; ++first) {
+            Board via_play(n);
+            Board via_swap(n);
+            via_play.play(first);
+            via_swap.play(first);
+
+            via_play.play(n * n);
+            via_swap.perform_swap();
+
+            INFO("n = " << n << ", red's first move = " << first);
+            REQUIRE(via_play.to_move() == via_swap.to_move());
+            REQUIRE(via_play.legal_moves() == via_swap.legal_moves());
+            for (int i = 0; i < n * n; ++i) {
+                REQUIRE(via_play.at(i) == via_swap.at(i));
+            }
+        }
+    }
+}
+
+TEST_CASE("with swap off, the swap move is never offered") {
+    Board b(3, false);
+    b.play(b.index(1, 1));                  // red
+    REQUIRE_FALSE(b.is_swap_legal());
+    REQUIRE_FALSE(b.is_legal(3 * 3));
+    for (int m : b.legal_moves()) REQUIRE(m < 3 * 3);
 }

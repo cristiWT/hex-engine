@@ -9,7 +9,7 @@ enum class Color : std::uint8_t {empty, red, blue};
 
 class Board {
 public:
-    explicit Board(int n);
+    explicit Board(int n, bool is_swap_on = true);
 
     int size() const;
     int index(int r, int c) const;
@@ -37,6 +37,7 @@ private:
     int right_node() const;
 
     int n_;
+    bool is_swap_on_;
     std::vector<Color> cell_;
     Color to_move_;
     Color winner_;
